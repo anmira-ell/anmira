@@ -3,15 +3,13 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import CustomUser
 
 class RegisterForm(UserCreationForm):
-    gender = forms.ChoiceField(
-        choices=[('male', 'Male'), ('female', 'Female')],
-        widget=forms.RadioSelect,
-        required=True,
-    )
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    gender = forms.ChoiceField(choices=[('male', 'Мужской'), ('female', 'Женский')], widget=forms.RadioSelect, required=True,)
 
     class Meta:
-         model = CustomUser
-         fields = UserCreationForm.Meta.fields + ('gender',)
+        model = CustomUser
+        fields = ['username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'gender']
 
 class LoginForm(AuthenticationForm):
     pass
