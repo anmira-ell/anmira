@@ -2,39 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User List</title>
+    <title>Список пользователей</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <h2>Список пользователей</h2>
+    <div class="container">
+        <h1>Список пользователей</h1>
         <table class="table">
             <thead>
-                <tr>
-                    <th>Имя</th>
-                    <th>Фамилия</th>
-                    <th>Email</th>
-                    <th>Пол</th>
-                    <th>Дата Регистрации</th>
-                </tr>
+            <tr>
+                <th>Имя пользователя</th>
+                <th>Email</th>
+                <th>Пол</th>
+            </tr>
             </thead>
             <tbody>
                 {% for user in users %}
-                    <tr>
-                        <td>{{ user.first_name }}</td>
-                        <td>{{ user.last_name }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>{{ user.gender }}</td>
-                        <td>{{ user.date_joined }}</td>
-                    </tr>
+                <tr>
+                  <td>{{ user.username }}</td>
+                  <td>{{ user.email }}</td>
+                  <td>{{ user.gender }}</td>
+                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{% url 'home' %}">На главную</a>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Назад</a>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+
