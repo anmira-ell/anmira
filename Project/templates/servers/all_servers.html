@@ -1,0 +1,551 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+  <div class="py-4">
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+      <div class="mb-3 mb-lg-0">
+        <h1 class="page-title">Сервера</h1>
+      </div>
+      <div>
+        <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addServerWizard">
+          Добавить сервер
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-demo row">
+    <!-- Сервера, занимает 75% ширины -->
+    <div class="col-12 col-xl-8">
+      <section class="widget">
+        <h5>Список серверов</h5>
+        {% if servers_state %}
+          <div class="mb-lg">
+          {% for server in servers_state %}
+            <div class="card panel mb-xs">
+            <div class="card-header panel-header" role="button" data-bs-toggle="collapse"
+                 data-bs-target="#collapseServer{{ server.id }}">
+              <div class="mb-0">
+                <a class="accordion-toggle" role="button"><h3>{{ server.name }}</h3><i class="fa fa-angle-down"></i></a>
+                <h5 class="fs-5 text-muted" role="button">{{ server.description }}</h5>
+                <h6>Статус:
+                  {% if server.status == 'inactive' %}
+                    <span class="badge bg-warning btn-xs">{{ server.status }}</span>
+                  {% elif server.status == 'healthy' %}
+                    <span class="badge bg-success btn-xs">{{ server.status }}</span>
+                  {% else %}
+                    <span class="badge bg-danger btn-xs">{{ server.status }}</span>
+                  {% endif %}
+                </h6>
+              </div>
+            </div>
+
+            <div id="collapseServer{{ server.id }}" class="panel-body collapse">
+              <div class="card-body">
+                <div class="btn-group" role="group" aria-label="Basic outlined example">
+                  <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                          data-bs-target="#updateServerModal{{ server.id }}">
+                    Изменить сервер
+                  </button>
+                  <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                          data-bs-target="#deleteServerModal{{ server.id }}">
+                    Удалить сервер
+                  </button>
+                  <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                          data-bs-target="#viewTokenModal{{ server.id }}">
+                    Токен доступа
+                  </button>
+                  <button class="btn btn-warning" type="button" data-bs-toggle="modal"
+                          data-bs-target="#createServiceModal{{ server.id }}"
+                          {% if server.status != 'healthy' %}disabled{% endif %}>
+                    Протокол сервера
+                  </button>
+                </div>
+                <br>
+              </div>
+            </div>
+
+            {% if server.company_services|length < 2 %}
+              <div class="card-footer">
+              {% if server.status != 'healthy' %}
+                <div class="alert alert-danger" role="alert">
+                  <h6>Для добавления сервисов требуется статус: "healthy" </h6>
+                </div>
+              {% endif %}
+            {% endif %}
+
+
+          {% for service in server.company_services %}
+            <div class="card border-primary">
+              <h5 class="card-header">{{ service.get_protocol_display }} Порт: {{ service.port }}</h5>
+              <div class="card-body">
+                <div class="card-group">
+                  <div class="card border-warning ">
+                    <h5 class="card-header">Группы</h5>
+                    <div class="d-flex flex-wrap justify-content-center align-items-start"
+                         style="width: 100%; max-height: 5rem;">
+                      {% for group in service.service_group.all %}
+                        {% if group.is_visible and not group.is_virtual %}
+                          <p><span class="badge btn-primary text-dark btn-xs">{{ group.name }}</span></p>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <div class="card border-warning">
+                    <h5 class="card-header">Контрагенты</h5>
+                    <div class="d-flex flex-wrap justify-content-center align-items-start"
+                         style="width: 100%; max-height: 5rem;">
+                      <p></p>
+                      {% for partner in service.partners %}
+                        <p><span
+                                class="badge btn-primary text-dark btn-xs">{{ partner.get_company_type_display }} {{ partner }}</span>
+                        </p>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer justify-content-center">
+                <div class="btn-group ">
+                  <button class="btn btn-default" type="button" data-bs-toggle="modal"
+                          data-bs-target="#editGroupsModal{{ service.id }}">Группы
+                  </button>
+                  <button class="btn btn-default" type="button" data-bs-toggle="modal"
+                          data-bs-target="#editPortProtocolModal{{ service.id }}">Настройки
+                  </button>
+                  <button class="btn btn-default" type="button" data-bs-toggle="modal"
+                          data-bs-target="#editSareModal{{ service.id }}">Контрагенты
+                  </button>
+                  <button class="btn btn-danger" type="button" data-bs-toggle="modal"
+                          data-bs-target="#deleteServiceModal{{ service.id }}">Удалить
+                  </button>
+                </div>
+              </div>
+            </div>
+            <br>
+          {% endfor %}
+          <br>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+          <h6>Нет добавленных серверов</h6>
+        {% endif %}
+        {% include 'pages/servers/wizard.html' %}
+      </section>
+    </div>
+
+    <!-- Памятка фиксированно справа, адаптивно меняется для маленьких экранов -->
+    <div class="widget-container col-xl-4">
+      <div>
+        <section class="widget Widget_widget__3F3hY" id="news-widget" draggable="false">
+          <header class="Widget_title__1ty8b">
+            <div style="text-align: center;">
+              <h3>Памятка</h3>
+              <span class="text-muted">Регистрация сервера в личном кабинете 2GC</span>
+            </div>
+          </header>
+          <div aria-hidden="false" class="rah-static rah-static--height-auto" style="height: auto; overflow: visible;">
+            <div>
+              <div class="Widget_widgetBody__1kO5M widget-body pt-3 px-2 py-0">
+                <ul class="news-list stretchable">
+                  <li><span class="icon text-white bg-danger"><i class="fa fa-star"></i></span>
+                    <div class="news-item-info">
+                      <h5 class="name m-0 mb-xs"><a href="#" draggable="false">Добавление нового сервера</a></h5>
+                      <p class="fs-mini">Нажмите сверху кнопку "Добавить сервер"</p>
+                    </div>
+                  </li>
+                  <li><span class="icon text-white bg-info"><i class="fa fa-eye"></i></span>
+                    <div class="news-item-info">
+                      <h5 class="name m-0 mb-xs"><a href="#" draggable="false">Заполнение данных о сервере</a></h5>
+                      <p class="fs-mini">В форме регистрации сервера необходимо указать следующие данные:</p>
+                      <p><b>Название сервера:</b> Введите уникальное название для вашего сервера, которое поможет вам
+                        легко его идентифицировать.</p>
+                      <p><b>Описание сервера:</b> Напишите краткое описание сервера (например, цель его использования,
+                        технические характеристики или другие особенности).</p>
+                    </div>
+                  </li>
+                  <li><span class="icon text-white bg-success"><i class="fa fa-eye"></i></span>
+                    <div class="news-item-info">
+                      <h5 class="name m-0 mb-xs"><a href="#" draggable="false">Добавление протокола доступа</a></h5>
+                      <p class="fs-mini">После регистрации сервера, вам необходимо настроить доступ к серверу:</p>
+                      <p>Укажите типы доступа, такие как SSH (по умолчанию 22), RDP (по умолчанию 3389)</p>
+                    </div>
+                    <div class="news-item-info" style="border: 2px solid #bd081c; padding: 10px;">
+                      <p style="color: #bd081c; font-size: 20px;">ВАЖНО!</p>
+                      <p> На ОС Windows необходимо открыть доступ <a
+                              href="https://winitpro.ru/index.php/2013/04/29/kak-vklyuchit-udalennyj-rabochij-stol-v-windows-8/"
+                              target="_blank">RDP</a></p>
+                    </div>
+                  </li>
+                  <li><span class="icon text-white bg-success"><i class="fa fa-eye"></i></span>
+                    <div class="news-item-info">
+                      <h5 class="name m-0 mb-xs"><a href="#" draggable="false">Управление доступом к серверам</a></h5>
+                      <p><b>Привязка серверов к группам:</b> В разделе управления сервером можно указать группы, которые
+                        имеют к нему доступ. Это упростит контроль над правами, особенно если у вас несколько серверов и
+                        групп.</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <h5>Если у вас возникли вопросы или трудности при настройке серверов, управлении пользователями и группами, а
+            также при работе с личным кабинетом 2GC, обращайтесь в техническую поддержку.</h5>
+          <br>
+        </section>
+        <div class="Widget_widgetBackground__1YLh8" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+  </script>
+
+  <!-- Модальные окна, вынесенные отдельно -->
+  {% for server in servers_state %}
+    {% for service in server.company_services %}
+      <div class="modal fade" id="editGroupsModal{{ service.id }}" tabindex="-1"
+           aria-labelledby="editGroupsModalLabel{{ service.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editGroupsModalLabel{{ service.id }}">Cервер: {{ server.name }}
+                Сервис: {{ service.get_protocol_display }} изменить сервисы</h5><br>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form method="post" action="{% url 'update_service_groups' service.id %}">
+                {% csrf_token %}
+                <div class="form-group">
+                  {% for group in groups %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="groups" value="{{ group.id }}"
+                             id="group{{ group.id }}"
+                             {% if group in service.service_group.all %}checked{% endif %}>
+                      <label class="form-check-label" for="group{{ group.id }}">
+                        {{ group.name }}
+                      </label>
+                    </div>
+                  {% endfor %}
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Сохранить</button>
+                  <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!--Модальное окно подключения пратнеров-->
+      <div class="modal fade" id="editSareModal{{ service.id }}" tabindex="-1"
+           aria-labelledby="editSareModal{{ service.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editSareModal{{ service.id }}">Изменить подключения партнеров</h5><br>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form method="post" action="{% url 'update_service_partner' service.id %}">
+                {% csrf_token %}
+                <div class="form-group">
+
+                  {% for partner in partners %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="partners"
+                             value="{{ partner.company_recipient.id }}"
+                             id="partner{{ partner.company_recipient.id }}"
+                             {% if partner.company_recipient in service.partners %}checked{% endif %}>
+                      <label class="form-check-label" for="partner{{ partner.company_recipient.id }}">
+                        {{ partner.company_recipient.company_type }} {{ partner.company_recipient.name }}
+                      </label>
+                    </div>
+                    {% empty %}
+                    <!-- Заглушка-->
+                    <div class="w-100 text-center pt-1 pb-2">
+                      <span class="text-muted">Нет доступных контрагентов</span>
+                    </div>
+
+                  {% endfor %}
+                </div>
+                <div class="modal-footer">
+                  {% if partners %}
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                  {% endif %}
+                  <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Модальное окно для изменения порта и протокола -->
+      <div class="modal fade" id="editPortProtocolModal{{ service.id }}" tabindex="-1"
+           aria-labelledby="editPortProtocolModal{{ service.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editPortProtocolModalLabel{{ service.id }}">Изменить
+                сервис: {{ service.get_protocol_display }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form method="post" action="{% url 'update_service' service.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label for="protocol" class="form-label">Протокол</label>
+                  <select name="protocol" id="protocol" class="form-select" aria-label="Протокол сервиса" disabled>
+                    {% for choice in service.PROTOCOL_TYPE_CHOICES %}
+                      <option value="{{ choice.0 }}" {% if choice.0 == service.protocol %}selected{% endif %}>
+                        {{ choice.1 }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="port" class="form-label">Порт</label>
+                  <input type="number" name="port" id="port" class="form-control" value="{{ service.port }}"
+                         aria-label="Порт сервиса">
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Сохранить</button>
+                  <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!--Модальное окно удаления сервиса-->
+      <div class="modal fade" id="deleteServiceModal{{ service.id }}" tabindex="-1"
+           aria-labelledby="deleteServiceModalLabel{{ service.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteServiceModalLabel{{ service.id }}">Удалить
+                сервис: {{ service.get_protocol_display }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Вы действительно хотите удалить сервис {{ service.get_protocol_display }}?</p>
+              <form method="post" action="{% url 'delete_service' service.id %}">
+                {% csrf_token %}
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-danger">Удалить</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    <!-- Модальное окно создания сервиса для конкретного сервера -->
+    <div class="modal fade" id="createServiceModal{{ server.id }}" tabindex="-1"
+         aria-labelledby="createServiceModal{{ server.id }}" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createServiceModal{{ server.id }}">Добавить сервис</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form method="post" action="{% url 'create_service' server.id %}">
+              {% csrf_token %}
+              <div class="form-group mb-4">
+                <label for="protocol" class="form-label">Протокол</label>
+                <select class="form-select" id="protocol" name="protocol">
+                  {% for value, label in form.protocol.field.choices %}
+                    {% if value not in server.used_service %}
+                      <option value="{{ value }}">{{ label }}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group mb-4">
+                <label for="port" class="form-label">Порт</label>
+                {{ form.port }}
+              </div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно изменения сервера -->
+    <div class="modal fade" id="updateServerModal{{ server.id }}" tabindex="-1"
+         aria-labelledby="updateServerModal{{ server.id }}" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="updateServerModal{{ server.id }}">Изменить сервер</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form method="post" action="{% url 'update_server' server.id %}">
+              {% csrf_token %}
+              <div class="form-group mb-4">
+                <label for="change_server_name" class="form-label">Название сервера</label>
+                <input type="text" name="name" id="change_server_name" class="form-control" value="{{ server.name }}"
+                       required>
+              </div>
+              <div class="form-group mb-4">
+                <label for="description" class="form-label">Описание сервера</label>
+                <input type="text" name="description" id="description" class="form-control"
+                       value="{{ server.description }}" required>
+              </div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно удаления сервера -->
+    <div class="modal fade" id="deleteServerModal{{ server.id }}" tabindex="-1"
+         aria-labelledby="deleteServerModal{{ server.id }}" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteServerModal{{ server.id }}">Удалить сервер</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Вы действительно хотите удалить сервер {{ server.name }}?</p>
+            <form method="post" action="{% url 'delete_server' server.id %}">
+              {% csrf_token %}
+              <div class="d-grid">
+                <button type="submit" class="btn btn-danger">Удалить</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно копирования токена -->
+
+    <div class="modal fade" id="viewTokenModal{{ server.id }}" tabindex="-1"
+         aria-labelledby="viewTokenModalLabel{{ server.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <!-- Заголовок модального окна -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewTokenModalLabel{{ server.id }}">Токен для сервера</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <!-- Тело модального окна -->
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="token{{ server.id }}">{% trans "Токен сервера" %}:</label>
+              <div class="d-flex">
+                <input style="color: black;" type="text" readonly class="form-control" id="token{{ server.id }}"
+                       value="{{ server.access_token }}">
+                <button class="btn btn-primary" onclick="copyToken('#token{{ server.id }}')">
+                  {% trans "Копировать" %}
+                </button>
+              </div>
+            </div>
+
+            <!-- Вкладки -->
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="Windows-tab" data-bs-toggle="tab"
+                        data-bs-target="#Windows" type="button" role="tab" aria-controls="Windows"
+                        aria-selected="true">Windows x64
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="linux64-tab" data-bs-toggle="tab"
+                        data-bs-target="#linux64" type="button" role="tab" aria-controls="linux64"
+                        aria-selected="false">Debian/Ubuntu x64
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="linuxarm-tab" data-bs-toggle="tab"
+                        data-bs-target="#linuxarm" type="button" role="tab" aria-controls="linuxarm"
+                        aria-selected="false">Debian/Ubuntu ARM
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="redhat64-tab" data-bs-toggle="tab"
+                        data-bs-target="#redhat64" type="button" role="tab" aria-controls="redhat64"
+                        aria-selected="false">Red Hat x64
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="docker-tab" data-bs-toggle="tab"
+                        data-bs-target="#docker" type="button" role="tab" aria-controls="docker"
+                        aria-selected="false">Docker
+                </button>
+              </li>
+            </ul>
+
+            <!-- Содержимое вкладок -->
+            <div class="tab-content mt-3" id="myTabContent">
+              <!-- Вкладка Windows -->
+              <div class="tab-pane fade show active" id="Windows" role="tabpanel" aria-labelledby="Windows-tab">
+                <p>Скачайте программу 2GC-SRV для регистрации токена на ваш сервер (ОС Windows):</p>
+                <button class="btn btn-primary"
+                        onclick="window.location.href='https://pub-36ab29c6bb304f7bb9288885149dda1b.r2.dev/2GC-SRV.exe'">
+                  Скачать
+                </button>
+              </div>
+              <!-- Вкладка Debian/Ubuntu x64 -->
+              <div class="tab-pane fade" id="linux64" role="tabpanel" aria-labelledby="linux64-tab">
+                        <pre><code id="code-linux64" style="color: #6f6f6f;">curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb &&
+                sudo dpkg -i cloudflared.deb &&
+                sudo cloudflared service install {{ server.access_token }}</code></pre>
+                <button class="btn btn-primary mt-3" onclick="copyToClipboard('#code-linux64')">
+                  {% trans "Скопировать" %}
+                </button>
+              </div>
+              <!-- Вкладка Debian/Ubuntu ARM -->
+              <div class="tab-pane fade" id="linuxarm" role="tabpanel" aria-labelledby="linuxarm-tab">
+                        <pre><code id="code-linuxarm" style="color: #6f6f6f;">curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm.deb &&
+                sudo dpkg -i cloudflared.deb &&
+                sudo cloudflared service install {{ server.access_token }}</code></pre>
+                <button class="btn btn-primary mt-3" onclick="copyToClipboard('#code-linuxarm')">
+                  {% trans "Скопировать" %}
+                </button>
+              </div>
+              <!-- Вкладка Red Hat x64 -->
+              <div class="tab-pane fade" id="redhat64" role="tabpanel" aria-labelledby="redhat64-tab">
+                        <pre><code id="code-redhat64" style="color: #6f6f6f;">curl -L --output cloudflared.rpm https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-x86_64.rpm &&
+                sudo yum localinstall -y cloudflared.rpm &&
+                sudo cloudflared service install {{ server.access_token }}</code></pre>
+                <button class="btn btn-primary" onclick="copyToClipboard('#code-redhat64')">
+                  {% trans "Скопировать" %}
+                </button>
+              </div>
+              <!-- Вкладка Docker -->
+              <div class="tab-pane fade" id="docker" role="tabpanel" aria-labelledby="docker-tab">
+                <pre><code id="code-docker" style="color: #6f6f6f;">docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token {{ server.access_token }}</code></pre>
+                <button class="btn btn-primary" onclick="copyToClipboard('#code-docker')">
+                  {% trans "Скопировать" %}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  {% endfor %}
+
+{% endblock %}

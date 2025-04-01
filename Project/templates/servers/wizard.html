@@ -1,0 +1,358 @@
+{% load static %}
+<!-- Модальное окно для пошагового добавления сервера -->
+<div class="modal fade" id="addServerWizard" tabindex="-1" role="dialog" aria-labelledby="addServerWizardLabel"
+     aria-hidden="true">
+  <link rel="stylesheet" href="{% static 'css/wizard.css' %}">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Добавление нового сервера</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <!-- Индикаторы загрузки и ошибок (добавляем в самое начало modal-body) -->
+      <div class="modal-body">
+        <div id="serverCreationLoader" style="display: none;" class="mb-2">
+          <div class="spinner-border spinner-border-sm text-primary"></div>
+          <span class="ms-2">Идет создание сервера...</span>
+        </div>
+
+        <div id="serverCreationError" class="alert alert-danger mt-2" style="display: none;"></div>
+
+        <!-- Прогресс-бар -->
+        <div class="progress mb-3">
+          <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+               aria-valuemax="100">0%
+          </div>
+        </div>
+
+        <div id="serverWizardSteps">
+          <div class="step" id="step1">
+            <h4>Шаг 1: Информация о сервере</h4>
+            <div class="mb-4">
+              <label for="serverName">Название сервера</label>
+              <input type="text" class="form-control" id="serverName" placeholder="Введите название" required>
+            </div>
+            <div class="mb-4">
+              <label for="serverComment">Описание</label>
+              <textarea class="form-control" id="serverComment" rows="3" placeholder="Введите описание"></textarea>
+            </div>
+          </div>
+
+          <div class="step" id="step2" style="display: none;">
+            <h4>Шаг 2: Регистрация токена</h4>
+            <p>Ваш токен: <strong id="serverToken">Ожидание...</strong></p>
+            <p>Скопируйте и зарегистрируйте его на сервере.</p>
+          </div>
+
+          <div class="step" id="step3" style="display: none;">
+            <h4>Шаг 3: Проверка активации</h4>
+            <div class="alert alert-info">
+              <div id="activationStatus">
+                <div class="spinner-border spinner-border-sm"></div>
+                Начало процесса активации...
+              </div>
+            </div>
+          </div>
+
+          <div class="step" id="step4" style="display: none;">
+            <h4>Шаг 4: Добавление сервисов</h4>
+            <div class="form-check">
+              <input type="checkbox" class="protocol-checkbox" value="rdp"> RDP
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="protocol-checkbox" value="ssh"> SSH
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Закрыть</button>
+        <button type="button" class="btn btn-primary" id="prevStep" style="display: none;">Назад</button>
+        <button type="button" class="btn btn-primary" id="nextStep">Далее</button>
+        <button type="button" class="btn btn-success" id="finishSetup" style="display: none;">Завершить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let currentStep = 1;
+        const totalSteps = 4;
+        const nextBtn = document.getElementById('nextStep');
+        const prevBtn = document.getElementById('prevStep');
+        const progressBar = document.querySelector('.progress-bar');
+
+
+        let serverId = null;
+        let accessToken = null;
+        let isTokenLoaded = false;
+        let statusCheckInterval = null;
+        let statusElement = null;
+
+        // Основная функция отображения шагов
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.style.display = 'none');
+            document.getElementById(`step${step}`).style.display = 'block';
+
+            prevBtn.style.display = step > 1 ? 'inline-block' : 'none';
+            nextBtn.style.display = step < totalSteps ? 'inline-block' : 'none';
+            document.getElementById('finishSetup').style.display = step === totalSteps ? 'inline-block' : 'none';
+
+            // Обновление прогресс-бара
+            const progress = ((step - 1) / (totalSteps - 1)) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${Math.round(progress)}%`;
+
+            // Логика для шага 2
+            if (step === 2) {
+                isTokenLoaded = false;
+                nextBtn.disabled = true;
+                loadServerToken();
+            }
+
+            // Логика для шага 3
+            if (step === 3) {
+                nextBtn.disabled = true;
+                startStatusPolling();
+            }
+        }
+
+        // Обработчик кнопки "Далее"
+        nextBtn.addEventListener('click', async function () {
+            switch (currentStep) {
+                case 1:
+                    const serverName = document.getElementById('serverName').value.trim();
+                    if (!serverName) {
+                        alert('Введите название сервера');
+                        return;
+                    }
+
+                    nextBtn.disabled = true;
+                    nextBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm"></span>
+                    Создание...`;
+
+                    try {
+                        const response = await fetch("{% url 'server-wizard-create' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                name: serverName,
+                                description: document.getElementById('serverComment').value.trim()
+                            }),
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.error || 'Ошибка создания');
+
+                        serverId = data.server_id;
+                        accessToken = data.access_token;
+                        console.log('Server ID и токен получены:', serverId, accessToken);
+
+                        // Динамически обновляем модальное окно просмотра токена
+                        const tokenInput = document.querySelector(`#viewTokenModal${serverId} input[type="text"]`);
+                        if (tokenInput) {
+                            tokenInput.value = accessToken; // Устанавливаем новый токен
+                        }
+
+                    } catch (error) {
+                        alert(error.message);
+                        return;
+                    } finally {
+                        nextBtn.disabled = false;
+                        nextBtn.textContent = 'Далее';
+                    }
+                    break;
+
+                case 2:
+                    if (!isTokenLoaded) return;
+                    break;
+            }
+
+            currentStep++;
+            showStep(currentStep);
+        });
+
+        // Шаг 2: Загрузка токена
+        async function loadServerToken() {
+            const tokenElement = document.getElementById('serverToken');
+            try {
+                tokenElement.innerHTML = `
+                <div class="token-loading">
+                    <span class="spinner-border spinner-border-sm"></span>
+                    Получение токена...
+                </div>`;
+
+                const response = await fetch(`/servers/get_token/${serverId}/`);
+                if (!response.ok) throw new Error('Ошибка сервера');
+
+                const data = await response.json();
+                if (!data.token) throw new Error('Токен не найден');
+
+                tokenElement.innerHTML = `<div class="token-wrapper"><strong>${data.token}</strong></div>`;
+                isTokenLoaded = true;
+                nextBtn.disabled = false;
+
+            } catch (error) {
+                tokenElement.innerHTML = `
+                <div class="text-danger">
+                    ${error.message}
+                    <button onclick="loadServerToken()" class="btn btn-sm btn-warning ms-2">Повторить</button>
+                </div>`;
+                isTokenLoaded = false;
+                nextBtn.disabled = true;
+            }
+        }
+
+        // Шаг 3: Проверка статуса
+        async function startStatusPolling() {
+            const statusElement = document.getElementById('activationStatus');
+            if (statusCheckInterval) clearInterval(statusCheckInterval);
+
+            statusCheckInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/servers/api/cloudflare/status/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({
+                            server_id: serverId,
+                            access_token: accessToken // Передаем access_token
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Ошибка сервера: ${errorText}`);
+                    }
+
+                    // Получаем данные в формате JSON
+                    const data = await response.json();
+                    console.log('Ответ от сервера:', data); // Для отладки
+
+                    // Проверяем, что data.result существует
+                    if (!data.result) {
+                        throw new Error('Некорректный ответ от сервера: отсутствует data.result');
+                    }
+
+                    const serverStatus = data.result.status || 'unknown';
+
+                    // Обновляем элемент статуса
+                    statusElement.innerHTML = `
+                <div class="status-indicator">
+                    <i class="fas fa-sync-alt fa-spin"></i>
+                    Статус: ${serverStatus}
+                    <small>${new Date().toLocaleTimeString()}</small>
+                </div>
+            `;
+
+                    // Применяем стиль в зависимости от статуса
+                    if (serverStatus === 'active') {
+                        statusElement.classList.add('status-active');
+                        statusElement.classList.remove('status-inactive', 'status-unknown');
+                    } else if (serverStatus === 'inactive') {
+                        statusElement.classList.add('status-inactive');
+                        statusElement.classList.remove('status-active', 'status-unknown');
+                    } else {
+                        statusElement.classList.add('status-unknown');
+                        statusElement.classList.remove('status-active', 'status-inactive');
+                    }
+
+                    // Если сервер активен, разрешаем кнопку "Далее"
+                    if (serverStatus === 'active') {
+                        clearInterval(statusCheckInterval);
+                        nextBtn.disabled = false;
+                        statusElement.innerHTML += `
+                    <div class="alert alert-success mt-2">
+                        Сервер активен!
+                    </div>
+                `;
+                    }
+
+                } catch (error) {
+                    statusElement.innerHTML = `
+                <div class="alert alert-danger">
+                    ${error.message}
+                    <button class="btn btn-sm btn-warning mt-2" onclick="startStatusPolling()">
+                        Повторить проверку
+                    </button>
+                </div>
+            `;
+                    clearInterval(statusCheckInterval);
+                }
+            }, 10000); // Каждые 10 секунд
+        }
+
+
+        // Обработчик кнопки "Назад"
+        prevBtn.addEventListener('click', function () {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        });
+
+        const finishBtn = document.getElementById('finishSetup');
+
+        finishBtn.addEventListener('click', async function () {
+            const protocols = [];
+            const protocolCheckboxes = document.querySelectorAll('.protocol-checkbox:checked');
+            protocolCheckboxes.forEach(checkbox => {
+                protocols.push(checkbox.value);
+            });
+
+            if (protocols.length === 0) {
+                alert('Выберите хотя бы один протокол');
+                return;
+            }
+
+            // Блокируем кнопку на время запроса
+            finishBtn.disabled = true;
+            finishBtn.innerHTML = `Завершаем...`;
+
+            try {
+                // Отправляем данные на сервер
+                const response = await fetch(`api/wizard/${serverId}/services/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({protocols})
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Ошибка при добавлении сервисов');
+
+                // Показываем сообщение о созданных сервисах
+                alert(data.message);
+
+                // Закрытие модального окна с использованием чистого JS
+                const modal = document.getElementById('addServerWizard');
+                const modalInstance = bootstrap.Modal.getInstance(modal);  // Получаем инстанс модалки
+                modalInstance.hide();  // Закрываем модалку
+
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                finishBtn.disabled = false;
+                finishBtn.innerHTML = 'Завершить';
+            }
+        });
+
+
+        // Инициализация при открытии модалки
+        $('#addServerWizard').on('show.bs.modal', function () {
+            currentStep = 1;
+            serverId = null;
+            isTokenLoaded = false;
+            showStep(currentStep);
+        });
+    });
+</script>
