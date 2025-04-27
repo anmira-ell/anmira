@@ -1,0 +1,180 @@
+{% extends 'layouts/base-auth.html' %}
+{% load static socialaccount i18n %}
+{% get_providers as socialaccount_providers %}
+
+{% block content %}
+  <section class="widget Widget_widget__3F3hY widget-auth mx-auto">
+    <header class="Widget_title__1ty8b">
+      <h3 class="mt-0">{% trans "Создать аккаунт" %}</h3>
+    </header>
+    <div aria-hidden="false" class="rah-static rah-static--height-auto" style="height: auto; overflow: visible;">
+      <div>
+        <div class="Widget_widgetBody__1kO5M widget-body">
+          <p class="widget-auth-info">{% trans "Пожалуйста, заполните все поля ниже" %}</p>
+          <form method="post" class="mt-4">
+            {% csrf_token %}
+
+            <!-- First Name Field -->
+            <div class="form-group mb-4">
+              <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+              <div class="input-group">
+                <span class="input-group-text" id="basic-addon1">
+                  <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                          clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                {{ form.first_name }}
+              </div>
+              <div class="text-danger my-3">{{ form.first_name.errors }}</div>
+            </div>
+
+            <!-- Last Name Field -->
+            <div class="form-group mb-4">
+              <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+              <div class="input-group">
+                <span class="input-group-text" id="basic-addon1">
+                  <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                          clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                {{ form.last_name }}
+              </div>
+              <div class="text-danger my-3">{{ form.last_name.errors }}</div>
+            </div>
+
+            <!-- Middle Name Field -->
+            <div class="form-group mb-4">
+              <label for="{{ form.middle_name.id_for_label }}">{{ form.middle_name.label }}</label>
+              <div class="input-group">
+                <span class="input-group-text" id="basic-addon1">
+                  <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                          clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                {{ form.middle_name }}
+              </div>
+              <div class="text-danger my-3">{{ form.middle_name.errors }}</div>
+            </div>
+
+            <!-- Email Field -->
+            <div class="form-group mb-4">
+              <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+              <div class="input-group">
+                <span class="input-group-text" id="basic-addon1">
+                  <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                  </svg>
+                </span>
+                {{ form.email }}
+              </div>
+              <div class="text-danger my-3">{{ form.email.errors }}</div>
+            </div>
+
+            <!-- Password1 Field -->
+            <div class="form-group mb-4">
+              <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+              <div class="input-group">
+                <span class="input-group-text" id="basic-addon2">
+                  <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                          d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                          clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                {{ form.password1 }}
+              </div>
+              <div class="text-danger my-3">{{ form.password1.errors }}</div>
+            </div>
+
+            <!-- Password2 Field -->
+            <div class="form-group mb-4">
+              <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+              <div class="input-group">
+                <span class="input-group-text" id="basic-addon2">
+                  <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                          d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                          clip-rule="evenodd"></path>
+                  </svg>
+                </span>
+                {{ form.password2 }}
+              </div>
+              <div class="text-danger my-3">{{ form.password2.errors }}</div>
+            </div>
+            <!-- Выбор типа аккаунта -->
+            <div class="form-group mb-4">
+              <label for="{{ form.account_type.id_for_label }}">
+                {{ form.account_type.label }}
+                <span class="ms-2" data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="{% trans 'Выберите один из вариантов: компания, если вы представляете организацию, или контрагент, если вы являетесь внешним работником или партнером' %}">
+                  <!-- SVG Иконка вопроса -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-circle"
+                       viewBox="0 0 16 16">
+                    <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 13a6 6 0 1 1 0-12 6 6 0 0 1 0 12z"/>
+                    <path d="M5.255 5.786a2.071 2.071 0 1 1 3.363.923c-.38.414-.847.731-1.312.973-.465.241-.848.502-.972.761-.123.26-.127.57-.127.858a.5.5 0 0 1-1 0c0-.35.005-.769.254-1.211.248-.44.607-.76 1.012-1.002.405-.243.779-.473 1.007-.738.228-.265.383-.623.383-1.1a1.071 1.071 0 0 0-1.824-.784.5.5 0 1 1-.707-.707zm.745 6.523a.745.745 0 1 0 1.49 0 .745.745 0 0 0-1.49 0z"/>
+                  </svg>
+                </span>
+              </label>
+              {% for choice in form.account_type %}
+                <div class="form-check">
+                  {{ choice.tag }}
+                  <label class="form-check-label">
+                    {{ choice.choice_label }}
+                  </label>
+                </div>
+              {% endfor %}
+              {% if form.account_type.errors %}
+                <div class="text-danger">{{ form.account_type.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Agreement Checkbox -->
+            <div class="mb-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="agree" required>
+                <label class="form-check-label fw-normal mb-0" for="agree">
+                  {% trans "Регистрируясь на сайте, я даю согласие на обработку персональных данных в соответствии с данным" %}
+                  <a href="https://2gc.ru/privacy_lk.html" class="fw-bold">{% trans "положением" %}</a>
+                </label>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid">
+              <button type="submit" class="mb-3 btn btn-info">{%  trans "Зарегистрироваться" %}</button>
+            </div>
+          </form>
+
+          <div class="d-flex justify-content-center align-items-center mt-4">
+            <span class="fw-normal">
+                {% trans "У вас уже есть аккаунт?" %}
+              <a href="{% url 'login' %}" class="fw-bold">{% trans "Войти" %}</a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<script>
+  // Инициализация тултипов Bootstrap
+  document.addEventListener("DOMContentLoaded", function () {
+      const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+          new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+  });
+</script>
+{% endblock content %}

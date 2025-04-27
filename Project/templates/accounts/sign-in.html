@@ -1,0 +1,82 @@
+{% extends 'layouts/base-auth.html' %}
+{% load static socialaccount i18n %}
+{% get_providers as socialaccount_providers %}
+
+{% block content %}
+
+
+
+<section class="widget Widget_widget__3F3hY widget-auth mx-auto">
+  <header class="Widget_title__1ty8b"><h3 class="mt-0">{% trans "Вход в личный кабинет" %}</h3></header>
+  <div aria-hidden="false" class="rah-static rah-static--height-auto" style="height: auto; overflow: visible;">
+      <div>
+          <div class="Widget_widgetBody__1kO5M widget-body">
+              <p class="widget-auth-info">{% trans "Используйте свой адрес электронной почты для входа."  %}</p>
+              <form method="post" class="mt-4">
+                {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              {% for error in form.non_field_errors %}
+                <div class="text-danger mb-3">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+
+            <!-- Form -->
+            <div class="form-group mb-4">
+              <label for="email">{{ form.username.label }}</label>
+              <div class="input-group">
+                    <span class="input-group-text" id="basic-addon1">
+                      <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20"
+                           xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                              clip-rule="evenodd"></path>
+                      </svg>
+                    </span>
+                    {{ form.username }}
+                  </div>
+                </div>
+                <!-- End of Form -->
+                <div class="form-group">
+                  <!-- Form -->
+                  <div class="form-group mb-4">
+                    <label for="password">{{ form.password.label }}</label>
+                    <div class="input-group">
+                      <span class="input-group-text" id="basic-addon2">
+                        <svg class="icon icon-xs text-gray-600" fill="currentColor" viewBox="0 0 20 20"
+                          xmlns="http://www.w3.org/2000/svg">
+                          <path fill-rule="evenodd"
+                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                            clip-rule="evenodd"></path>
+                        </svg>
+                      </span>
+                      {{ form.password }}
+                    </div>
+                  </div>
+                  <!-- End of Form -->
+                  <div class="bg-widget auth-widget-footer">
+                      <button type="submit" class="auth-btn btn btn-danger btn-sm">
+                          {% trans "Войти" %}
+                      </button>
+
+                      <a class="d-block text-center mt-2 fs-sm" href="{% url 'users:password_reset' %}">{% trans "Забыли пароль?" %}</a>
+                      <p class="widget-auth-info mt-4">{% trans "У вас нет учетной записи?" %}</p>
+                      <a class="d-block text-center mb-4" href="{% url 'register' %}">{% trans "Создать аккаунт" %}</a>
+{#                      <div class="social-buttons">#}
+{#                          <button type="button" class="social-button btn btn-primary">#}
+{#                              <i class="social-icon social-google"></i>#}
+{#                              <span class="social-text">GOOGLE</span>#}
+{#                          </button>#}
+{#                      </div>#}
+                  </div>
+                </div>
+              </form>
+          </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+{% endblock content %}
