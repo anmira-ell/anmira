@@ -1,0 +1,198 @@
+{% extends 'layouts/base.html' %}
+{% load static i18n %}
+
+{% block content %}
+
+  <link type="text/css" href="{% static 'css/custom_mgmt.css' %}" rel="stylesheet">
+  <div class="py-4">
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+      <h1 class="page-title">{{ company.name }}</h1>
+    </div>
+  </div>
+
+
+  <div class="container">
+    <div class="row">
+
+      <div style="display: flex; justify-content: space-between;">
+        <section class="widget Widget_widget__3F3hY table-responsive col-md-5">
+          <header class="Widget_title__1ty8b ">
+            <h4>{% trans "Карточка компании" %}<span class="fw-semi-bold"></span></h4>
+          </header>
+
+          <div aria-hidden="false" class="rah-static rah-static--height-auto"
+               style="height: auto; overflow: visible;">
+            <div>
+              <div class="Widget_widgetBody__1kO5M widget-body">
+                <div>
+                  <div class="react-bootstrap-table">
+                    <table class="table table-striped table-bordered">
+                      <tbody>
+                      <tr>
+                        <td style="color: aliceblue !important;">{% trans "Юридическое лицо:" %}</td>
+                        <td style="color: aliceblue !important; word-wrap: break-word; white-space: normal;">
+                          {% if company.company_type == 'OOO' %}
+                            {% trans "OOO" %}
+                          {% elif company.company_type == 'IP' %}
+                            {% trans "ИП" %}
+                          {% elif company.company_type == 'Physical' %}
+                            {% trans "Физ. лицо" %}
+                          {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="color: aliceblue !important;">Тип формы:</td>
+                        <td style="color: aliceblue !important;">
+                          {% if company.company_type == 'OOO' %}
+                            {% trans "Юридическое лицо" %}
+                          {% elif company.company_type == 'IP' %}
+                            {% trans "Индивидуальный предприниматель" %}
+                          {% elif company.company_type == 'Physical' %}
+                            {% trans "Физическое лицо" %}Физическое лицо
+                          {% endif %}
+                        </td>
+                      </tr>
+                      {% if company.company_type == 'OOO' %}
+                        <!-- Поля для ООО -->
+                        <tr>
+                          <td style="color: aliceblue !important;">{% trans "ИНН:" %}</td>
+                          <td style="color: aliceblue !important;">{{ company.inn }}</td>
+                        </tr>
+                        <tr>
+                          <td style="color: aliceblue !important;">{% trans "КПП:" %}</td>
+                          <td style="color: aliceblue !important;">{{ company.kpp }}</td>
+                        </tr>
+                        <tr>
+                          <td style="color: aliceblue !important;">{% trans "ОГРН:" %}</td>
+                          <td style="color: aliceblue !important;">{{ company.ogrn }}</td>
+                        </tr>
+                      {% elif company.company_type == 'IP' %}
+                        <!-- Поля для ИП -->
+                        <tr>
+                          <td style="color: aliceblue !important;">{% trans "ИНН:" %}</td>
+                          <td style="color: aliceblue !important;">{{ company.inn }}</td>
+                        </tr>
+                        <!-- Исключаем КПП и ОГРН для ИП -->
+                      {% endif %}
+                      <!-- Общие поля для всех типов -->
+                      <tr>
+                        <td style="color: aliceblue !important;">{% trans "Email:" %}</td>
+                        <td style="color: aliceblue !important;">{{ company.email }}</td>
+                      </tr>
+                      <tr>
+                        <td style="color: aliceblue !important;">{% trans "Телефон:" %}</td>
+                        <td style="color: aliceblue !important;">{{ company.phone }}</td>
+                      </tr>
+                      {% if company.company_type == 'Physical' %}
+                        <!-- Поля только для физических лиц -->
+                        <!-- Дополнительные поля для физических лиц можно добавить здесь -->
+                      {% endif %}
+
+
+                      </tbody>
+                    </table>
+                    <a href="{% url 'edit-company' company.id %}"
+                       class="btn btn-primary">{% trans "Изменить компанию" %}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="widget Widget_widget__3F3hY table-responsive col-md-5">
+          <header class="Widget_title__1ty8b ">
+            <h4>{% trans "Банковские реквизиты" %}<span class="fw-semi-bold"></span></h4>
+          </header>
+
+          <div aria-hidden="false" class="rah-static rah-static--height-auto"
+               style="height: auto; overflow: visible;">
+            <div>
+              <div class="Widget_widgetBody__1kO5M widget-body">
+                <div>
+                  <div class="react-bootstrap-table">
+                    <table class="table table-striped table-bordered">
+                      <tbody>
+                      <tr>
+                        <td style="color: aliceblue !important;">{% trans "Банк:" %}</td>
+                        <td style="color: aliceblue !important;">
+                          {{ company.bank_name }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="color: aliceblue !important;">{% trans "Счет №:" %}</td>
+                        <td style="color: aliceblue !important;">
+                          {{ company.bank_account }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="color: aliceblue !important;">{% trans "К.с.:" %}</td>
+                        <td style="color: aliceblue !important;">
+                          {{ company.correspondent_account }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="color: aliceblue !important;">{% trans "БИК:" %}</td>
+                        <td style="color: aliceblue !important;">
+                          {{ company.bank_bic }}
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                    <a href="{% url 'edit_bank_company' company.id %}"
+                       class="btn btn-primary">{% trans "Изменить реквизиты" %}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div>
+        <section class="widget Widget_widget__3F3hY">
+          <header class="Widget_title__1ty8b">
+            <h5>{% trans "Текущий тарифный план" %} &nbsp;<span
+                    class="badge badge-success fw-normal">{{ tariff.name }}</span></h5>
+          </header>
+          <div aria-hidden="false" class="rah-static rah-static--height-auto"
+               style="height: auto; overflow: visible;">
+            <div>
+              <div class="Widget_widgetBody__1kO5M widget-body ">
+              <h5>{% trans "Параметры тарифа" %}</h5>
+                <ul class="text-list">
+                  <li><strong>{% trans "Пользователи:" %}
+                    {% if tariff.max_employees == -1 %}
+                      {% trans "Без ограничений" %}
+                    {% else %}
+                      {{ tariff.max_employees }}
+                    {% endif %}</strong></li>
+                  <li><strong>{% trans "Группы:" %}
+                    {% if tariff.max_groups == -1 %}
+                      {% trans "Без ограничений" %}
+                    {% else %}
+                      {{ tariff.max_groups }}
+                    {% endif %}</strong></li>
+                  <li><strong>{% trans "Сервера:" %}
+                    {% if tariff.max_servers == -1 %}
+                      {% trans "Без ограничений" %}
+                    {% else %}
+                      {{ tariff.max_servers }}
+                    {% endif %}</strong></li>
+                  <li>
+                    <strong>{% trans "Цена за сотрудника:" %}</strong> {{ tariff.price_per_employee }}
+                    ₽
+                  </li>
+                </ul>
+                <a href="{% url 'edit_tariff_company' company.id %}"
+                   class="btn btn-primary">{% trans "Изменить тариф" %}</a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+
+{% endblock content %}
